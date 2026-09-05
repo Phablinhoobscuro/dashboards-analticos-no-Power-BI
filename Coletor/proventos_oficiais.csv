@@ -1,20 +1,4 @@
 ﻿empresa_chave,tipo_provento,periodo_deliberacao,data,data_pagamento,base_distribuicao,volume_total_brl,dividendo_por_acao_brl,fonte
-smartfit,JCP,Out/2023,2023-10-31,2023-10-27,2023,206600000.0,0.3524153209,https://investor.smartfit.com.br/dividendos-jcp/
-smartfit,JCP,Dez/2023,2023-12-31,2023-12-21,2023,59400000.0,0.1013232943,https://investor.smartfit.com.br/dividendos-jcp/
-smartfit,JCP,Jun/2024,2024-06-30,2024-07-31,2024,50000000.0,0.0852889683,https://investor.smartfit.com.br/dividendos-jcp/
-smartfit,JCP,Dez/2024,2024-12-31,2025-02-12,2024,258500000.0,0.44094396609,https://investor.smartfit.com.br/dividendos-jcp/
-smartfit,JCP,Mar/2025,2025-03-31,2025-04-30,2025,40000000.0,0.06697362319,https://investor.smartfit.com.br/dividendos-jcp/
-smartfit,JCP,Jun/2025,2025-06-30,2025-07-31,2025,40000000.0,0.06697362319,https://investor.smartfit.com.br/dividendos-jcp/
-smartfit,JCP,Set/2025,2025-09-30,2025-10-31,2025,40000000.0,0.06697393583,https://investor.smartfit.com.br/dividendos-jcp/
-smartfit,JCP,Dez/2025,2025-12-31,2026-01-13,2025,502724000.0,0.84173491445,https://investor.smartfit.com.br/dividendos-jcp/
-totvs,JCP,RCA 24/07/2023,2023-07-24,2023-08-25,2023,138871104.3,0.23,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
-totvs,JCP,RCA 29/11/2023,2023-11-29,2023-12-22,2023,126797940.99,0.21,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
-totvs,JCP,RCA 01/08/2024,2024-08-01,2024-08-26,2024,136811458.67,0.23,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
-totvs,JCP,RCA 25/11/2024,2024-11-25,2024-12-27,2024,128893866.86,0.22,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
-totvs,JCP,RCA 18/03/2025,2025-03-18,2025-04-04,2025,82026143.36,0.14,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
-totvs,JCP,RCA 16/06/2025,2025-06-16,2025-07-07,2025,88143582.3,0.15,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
-totvs,JCP,RCA 17/09/2025,2025-09-17,2025-10-06,2025,88144274.4,0.15,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
-totvs,JCP,RCA 10/12/2025,2025-12-10,2025-12-30,2025,99898738.97,0.17,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
 localiza,JCP,23/03/2023,2023-03-23,2023-05-19,2023,362843620.89,0.369176,https://ri.localiza.com/mercado-de-capitais/dividendos-e-jcp/
 localiza,JCP,16/06/2023,2023-06-16,2023-08-14,2023,368384854.03,0.349173,https://ri.localiza.com/mercado-de-capitais/dividendos-e-jcp/
 localiza,JCP,22/09/2023,2023-09-22,2023-11-20,2023,428868075.25,0.406579,https://ri.localiza.com/mercado-de-capitais/dividendos-e-jcp/
@@ -27,3 +11,21 @@ localiza,JCP,21/03/2025,2025-03-21,2025-05-16,2025,480916080.44,0.456384,https:/
 localiza,JCP,24/06/2025,2025-06-24,2025-08-19,2025,533817799.07,0.506193,https://ri.localiza.com/mercado-de-capitais/dividendos-e-jcp/
 localiza,JCP,22/09/2025,2025-09-22,2025-11-18,2025,543441607.99,0.515365,https://ri.localiza.com/mercado-de-capitais/dividendos-e-jcp/
 localiza,JCP,12/12/2025,2025-12-12,2026-02-06,2025,543563717.94,0.515478,https://ri.localiza.com/mercado-de-capitais/dividendos-e-jcp/
+smartfit,JCP,Out/2023,2023-10-31,2023-10-27,2023,206600000.0,0.3524153209,https://investor.smartfit.com.br/dividendos-jcp/
+smartfit,JCP,Dez/2023,2023-12-31,2023-12-21,2023,59400000.0,0.1013232943,https://investor.smartfit.com.br/dividendos-jcp/
+smartfit,JCP,Jun/2024,2024-06-30,2024-07-31,2024,50000000.0,0.0852889683,https://investor.smartfit.com.br/dividendos-jcp/
+smartfit,JCP,Dez/2024,2024-12-31,2025-02-12,2024,258500000.0,0.44094396609,https://investor.smartfit.com.br/dividendos-jcp/
+smartfit,JCP,Mar/2025,2025-03-31,2025-04-30,2025,40000000.0,0.06697362319,https://investor.smartfit.com.br/dividendos-jcp/
+smartfit,JCP,Jun/2025,2025-06-30,2025-07-31,2025,40000000.0,0.06697362319,https://investor.smartfit.com.br/dividendos-jcp/
+smartfit,JCP,Set/2025,2025-09-30,2025-10-31,2025,40000000.0,0.06697393583,https://investor.smartfit.com.br/dividendos-jcp/
+smartfit,JCP,Dez/2025,2025-12-31,2026-01-13,2025,502724000.0,0.84173491445,https://investor.smartfit.com.br/dividendos-jcp/
+totvs,JCP,RCA 01/08/2022,2022-08-01,2022-09-23,2022,60573584.6,0.1,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
+totvs,JCP,RCA 26/12/2022,2022-12-26,2023-01-27,2022,127206959.67,0.21,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
+totvs,JCP,RCA 24/07/2023,2023-07-24,2023-08-25,2023,138871104.3,0.23,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
+totvs,JCP,RCA 29/11/2023,2023-11-29,2023-12-22,2023,126797940.99,0.21,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
+totvs,JCP,RCA 01/08/2024,2024-08-01,2024-08-26,2024,136811458.67,0.23,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
+totvs,JCP,RCA 25/11/2024,2024-11-25,2024-12-27,2024,128893866.86,0.22,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
+totvs,JCP,RCA 18/03/2025,2025-03-18,2025-04-04,2025,82026143.36,0.14,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
+totvs,JCP,RCA 16/06/2025,2025-06-16,2025-07-07,2025,88143582.3,0.15,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
+totvs,JCP,RCA 17/09/2025,2025-09-17,2025-10-06,2025,88144274.4,0.15,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/
+totvs,JCP,RCA 10/12/2025,2025-12-10,2025-12-30,2025,99898738.97,0.17,https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/

@@ -19,7 +19,8 @@
     },
     "observacoes": [
       "Empresa-piloto validada antes da parametrização."
-    ]
+    ],
+    "usar_comparativos_reapresentados": false
   },
   "totvs": {
     "nome": "TOTVS S.A.",
@@ -40,8 +41,10 @@
       "lucro_controladores": "3.11.01"
     },
     "observacoes": [
-      "Primeira empresa recomendada para testar após a regressão da Smart Fit."
-    ]
+      "Primeira empresa recomendada para testar após a regressão da Smart Fit.",
+      "Usar, quando disponível, o comparativo PENÚLTIMO apresentado no ano seguinte para manter a série histórica na classificação contábil mais recente."
+    ],
+    "usar_comparativos_reapresentados": true
   },
   "porto": {
     "nome": "PORTO SEGURO S.A.",
@@ -69,7 +72,8 @@
     "observacoes": [
       "O RI consultado traz proventos anuais agregados, insuficientes para DY semestral TTM.",
       "Por ser seguradora, validar cuidadosamente Receita, Margem, ROA e contas CVM antes de congelar a metodologia."
-    ]
+    ],
+    "usar_comparativos_reapresentados": false
   },
   "mrv": {
     "nome": "MRV ENGENHARIA E PARTICIPACOES S.A.",
@@ -91,7 +95,8 @@
     },
     "observacoes": [
       "O histórico oficial consultado não apresenta eventos posteriores a 2022; assim, 2023-2025 é tratado como zero provento na base configurada."
-    ]
+    ],
+    "usar_comparativos_reapresentados": false
   },
   "localiza": {
     "nome": "LOCALIZA RENT A CAR S.A.",
@@ -111,6 +116,7 @@
       "lucro_consolidado": "3.11",
       "lucro_controladores": "3.11.01"
     },
-    "observacoes": []
+    "observacoes": [],
+    "usar_comparativos_reapresentados": false
   }
 }

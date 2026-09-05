@@ -1,79 +1,57 @@
-# Coletor parametrizado — Dashboard Analítico
+# Coletor Parametrizado V3 — ajuste histórico TOTVS 1S24
 
-## Arquivos necessários na mesma pasta
+Esta versão mantém as correções da V2 e adiciona uma camada genérica de
+`ajustes_historicos.csv`.
 
-- `coletor_parametrizado.py`
+## Por que ela existe?
+
+A TOTVS reapresentou no ITR de 30/06/2025 o comparativo de 1S24 com valores
+reclassificados. O layout padronizado da CVM não oferece, para todas as
+demonstrações, o mesmo comparativo de data-base que usamos no modelo.
+
+Por isso, o coletor:
+1. coleta normalmente a CVM;
+2. aplica somente os campos documentados em `ajustes_historicos.csv`;
+3. recalcula o 2S do mesmo ano para manter o total anual;
+4. depois calcula TTM, YoY e indicadores.
+
+## Ajustes TOTVS 1S24
+
+- Receita: R$ 2.497.689.000
+- Lucro Líquido Consolidado: R$ 250.076.000
+- Lucro atribuível aos controladores: R$ 241.521.000
+
+Fonte: ITR TOTVS de 30/06/2025, comparativo acumulado de 01/01/2024 a 30/06/2024.
+
+## O que NÃO é alterado
+
+Ativo e Patrimônio Líquido de 30/06/2024 continuam vindo da demonstração de
+posição utilizada originalmente, porque o ajuste documentado é referente à DRE.
+
+## Auditoria
+
+O CSV financeiro inclui:
+- `ajuste_historico_aplicado`
+- `campos_ajustados`
+- `fonte_ajuste_historico`
+- `motivo_ajuste_historico`
+
+## Arquivos necessários
+
+O script procura estes nomes:
 - `empresas_dashboard.json`
 - `proventos_oficiais.csv`
+- `ajustes_historicos.csv`
 
-## Dependências
-
-```bash
-pip install -r requirements_coletor_parametrizado.txt
-```
-
-## Listar empresas
+## Execução
 
 ```bash
-python coletor_parametrizado.py --listar
-```
-
-## Executar uma empresa
-
-```bash
-python coletor_parametrizado.py --empresa smartfit
 python coletor_parametrizado.py --empresa totvs
-python coletor_parametrizado.py --empresa porto
-python coletor_parametrizado.py --empresa mrv
-python coletor_parametrizado.py --empresa localiza
 ```
 
-## Executar todas
-
-```bash
-python coletor_parametrizado.py --todas
-```
-
-## Estrutura de saída
-
-```text
-saida_empresas/
-├── _cache_cvm/
-├── smartfit/
-├── totvs/
-├── porto/
-├── mrv/
-├── localiza/
-└── consolidado/
-```
-
-O cache evita baixar os mesmos ZIPs anuais da CVM para cada empresa.
-
-## Metodologia
-
-- ITR 30/06 = primeiro semestre.
-- DFP 31/12 = balanço anual.
-- Segundo semestre da DRE = DFP anual - ITR acumulada de 30/06.
-- P/L, ROE, ROA e Margem usam TTM quando aplicável.
-- Crescimento da Receita = YoY por semestre.
-- Preços = yfinance.
-- Dividendos/JCP = RI oficial quando o histórico é suficientemente detalhado.
-
-## Status inicial dos proventos
-
-- Smart Fit: completo.
-- TOTVS: completo.
-- Localiza: completo.
-- MRV: histórico oficial consultado sem eventos em 2023-2025.
-- Porto Seguro: o RI fornece agregado anual; o DY semestral fica NaN nesta versão.
-
-## Ordem recomendada de testes
-
-1. `--empresa smartfit` para conferir que a parametrização reproduz a empresa-piloto.
-2. `--empresa totvs` e validar todos os resultados.
-3. Localiza.
-4. MRV.
-5. Porto Seguro por último, pois seguradoras podem exigir tratamento contábil específico.
-
-Não considere uma nova empresa validada apenas porque o script terminou sem erro.
-Confira pelo menos Ativo, Patrimônio, Receita, Lucro e os sete indicadores.
+Depois valide principalmente:
+- 1S24 Receita = 2.497.689.000
+- 1S24 Lucro Consolidado = 250.076.000
+- 1S24 Lucro Controladores = 241.521.000
+- 2S24 recalculado automaticamente
+- Crescimento YoY 1S25 próximo de 18,11%

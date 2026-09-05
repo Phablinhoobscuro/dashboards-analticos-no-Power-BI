@@ -63,6 +63,7 @@ import yfinance as yf
 SCRIPT_DIR = Path(__file__).resolve().parent
 ARQUIVO_CONFIG = SCRIPT_DIR / "empresas_dashboard.json"
 ARQUIVO_PROVENTOS = SCRIPT_DIR / "proventos_oficiais.csv"
+ARQUIVO_AJUSTES_HISTORICOS = SCRIPT_DIR / "ajustes_historicos.csv"
 
 # Três anos completos do projeto
 ANOS_ALVO = [2023, 2024, 2025]
@@ -136,6 +137,21 @@ def configurar_empresa(chave: str) -> dict:
 
 def conta_config(nome: str, padrao: str) -> str:
     return EMPRESA.get("contas", {}).get(nome, padrao)
+
+
+def usar_comparativos_reapresentados() -> bool:
+    """
+    Se True, o coletor tenta usar o comparativo PENULTIMO divulgado
+    no ano seguinte para a série histórica.
+
+    Exemplo:
+      - 1S/2024 -> ITR 2025, PENULTIMO;
+      - 2024 anual -> DFP 2025, PENULTIMO.
+
+    Se o documento do ano seguinte ainda não existir, usa o valor
+    original do próprio exercício.
+    """
+    return bool(EMPRESA.get("usar_comparativos_reapresentados", False))
 
 # ============================================================
 # UTILITÁRIOS
@@ -268,10 +284,15 @@ def filtrar_empresa_ultima_versao(
     df: pd.DataFrame,
     cnpj: str,
     data_referencia: str,
+    ordem_exerc: str = "ULTIMO",
+    data_fim_exercicio: Optional[str] = None,
 ) -> pd.DataFrame:
     """
-    Filtra CNPJ + DT_REFER e mantém a maior VERSAO.
-    Depois, quando existir ORDEM_EXERC, mantém o exercício atual (ÚLTIMO).
+    Filtra CNPJ + DT_REFER, mantém a maior VERSAO e seleciona
+    ORDEM_EXERC exatamente igual a ULTIMO ou PENULTIMO.
+
+    Para comparativos reapresentados, DT_REFER pertence ao documento
+    do ano seguinte, enquanto DT_FIM_EXERC pertence ao ano histórico.
     """
     copia = df.copy()
 
@@ -292,10 +313,10 @@ def filtrar_empresa_ultima_versao(
 
     if copia.empty:
         raise ValueError(
-            f"Não há dados para {EMPRESA['nome']} na data {data_referencia}."
+            f"Não há dados para {EMPRESA['nome']} no documento "
+            f"DT_REFER={data_referencia}."
         )
 
-    # Muito importante: reapresentações da CVM.
     if "VERSAO" in copia.columns:
         copia["_VERSAO_NUM"] = pd.to_numeric(
             copia["VERSAO"].str.replace(",", ".", regex=False),
@@ -305,24 +326,31 @@ def filtrar_empresa_ultima_versao(
             maior = copia["_VERSAO_NUM"].max()
             copia = copia[copia["_VERSAO_NUM"] == maior].copy()
 
-    # Remove o comparativo do exercício anterior.
-    # IMPORTANTE: usar igualdade exata.
-    # "PENÚLTIMO" também contém a palavra "ÚLTIMO", então str.contains("ULTIMO")
-    # selecionava tanto o exercício corrente quanto o anterior.
     if "ORDEM_EXERC" in copia.columns:
+        ordem_desejada = sem_acento(ordem_exerc)
         ordem = copia["ORDEM_EXERC"].map(sem_acento)
-        atuais = copia[ordem.eq("ULTIMO")].copy()
-        if not atuais.empty:
-            copia = atuais
+        filtrado = copia[ordem.eq(ordem_desejada)].copy()
 
-    # Segurança adicional: nas demonstrações de posição (BPA/BPP),
-    # garante que a data final do exercício seja exatamente a data-base desejada.
+        if filtrado.empty:
+            raise ValueError(
+                f"ORDEM_EXERC={ordem_exerc} não encontrada para "
+                f"{EMPRESA['nome']} em DT_REFER={data_referencia}."
+            )
+
+        copia = filtrado
+
     if "DT_FIM_EXERC" in copia.columns:
-        fim = pd.to_datetime(copia["DT_FIM_EXERC"], errors="coerce")
-        alvo_data = pd.Timestamp(data_referencia)
-        exato = copia[fim == alvo_data].copy()
+        fim_exerc = pd.to_datetime(copia["DT_FIM_EXERC"], errors="coerce")
+        alvo_fim = pd.Timestamp(data_fim_exercicio or data_referencia)
+        exato = copia[fim_exerc == alvo_fim].copy()
+
         if not exato.empty:
             copia = exato
+        elif data_fim_exercicio is not None:
+            raise ValueError(
+                f"DT_FIM_EXERC={data_fim_exercicio} não encontrada "
+                f"no documento {data_referencia}."
+            )
 
     return copia
 
@@ -427,78 +455,152 @@ def salvar_filtrado(df: pd.DataFrame, nome: str) -> None:
 # CVM - EXTRAÇÃO SEMESTRAL
 # ============================================================
 
-def extrair_primeiro_semestre(ano: int) -> dict:
-    data_ref = f"{ano}-06-30"
+def extrair_primeiro_semestre(
+    ano: int,
+    usar_comparativo_ano_seguinte: bool = False,
+) -> dict:
+    data_alvo = f"{ano}-06-30"
+
+    if usar_comparativo_ano_seguinte:
+        ano_arquivo = ano + 1
+        data_doc = f"{ano_arquivo}-06-30"
+        ordem = "PENULTIMO"
+        sufixo = f"REAPRESENTADO_EM_{ano_arquivo}"
+    else:
+        ano_arquivo = ano
+        data_doc = data_alvo
+        ordem = "ULTIMO"
+        sufixo = "ORIGINAL"
 
     bpa = filtrar_empresa_ultima_versao(
-        ler_csv_cvm("ITR", "BPA", ano), EMPRESA["cnpj"], data_ref
+        ler_csv_cvm("ITR", "BPA", ano_arquivo),
+        EMPRESA["cnpj"],
+        data_doc,
+        ordem_exerc=ordem,
+        data_fim_exercicio=data_alvo,
     )
     bpp = filtrar_empresa_ultima_versao(
-        ler_csv_cvm("ITR", "BPP", ano), EMPRESA["cnpj"], data_ref
+        ler_csv_cvm("ITR", "BPP", ano_arquivo),
+        EMPRESA["cnpj"],
+        data_doc,
+        ordem_exerc=ordem,
+        data_fim_exercicio=data_alvo,
     )
     dre = filtrar_empresa_ultima_versao(
-        ler_csv_cvm("ITR", "DRE", ano), EMPRESA["cnpj"], data_ref
+        ler_csv_cvm("ITR", "DRE", ano_arquivo),
+        EMPRESA["cnpj"],
+        data_doc,
+        ordem_exerc=ordem,
+        data_fim_exercicio=data_alvo,
     )
     dre = filtrar_dre_acumulada_ano(dre, ano)
 
-    salvar_filtrado(bpa, f"{ano}_1S_ITR_BPA_con.csv")
-    salvar_filtrado(bpp, f"{ano}_1S_ITR_BPP_con.csv")
-    salvar_filtrado(dre, f"{ano}_1S_ITR_DRE_con.csv")
+    salvar_filtrado(bpa, f"{ano}_1S_ITR_BPA_con_{sufixo}.csv")
+    salvar_filtrado(bpp, f"{ano}_1S_ITR_BPP_con_{sufixo}.csv")
+    salvar_filtrado(dre, f"{ano}_1S_ITR_DRE_con_{sufixo}.csv")
 
     ativo_total = obter_conta(bpa, conta_config("ativo_total", "1"))
-    pl_consolidado = obter_conta(bpp, conta_config("pl_consolidado", "2.03"))
-    nci = obter_conta(bpp, conta_config("nao_controladores", "2.03.09"))
+    pl_consolidado = obter_conta(
+        bpp, conta_config("pl_consolidado", "2.03")
+    )
+    nci = obter_conta(
+        bpp, conta_config("nao_controladores", "2.03.09")
+    )
 
-    # Se não houver NCI, patrimônio atribuível aos controladores = PL consolidado.
     pl_controladores = (
         pl_consolidado - nci
         if pd.notna(pl_consolidado) and pd.notna(nci)
         else pl_consolidado
     )
 
-    receita = obter_conta(dre, conta_config("receita", "3.01"))
-    lucro_consolidado = obter_conta(dre, conta_config("lucro_consolidado", "3.11"))
-    lucro_controladores = obter_conta(dre, conta_config("lucro_controladores", "3.11.01"))
+    reapresentado = bool(usar_comparativo_ano_seguinte)
 
     return {
         "empresa": EMPRESA["nome"],
         "ticker": EMPRESA["ticker_b3"],
         "ano": ano,
         "semestre": "1S",
-        "data_referencia": data_ref,
+        "data_referencia": data_alvo,
         "ativo_total_brl": ativo_total,
         "patrimonio_liquido_consolidado_brl": pl_consolidado,
         "participacao_nao_controladores_brl": nci,
         "patrimonio_atribuivel_controladores_brl": pl_controladores,
-        "receita_semestre_brl": receita,
-        "lucro_liquido_consolidado_semestre_brl": lucro_consolidado,
-        "lucro_atribuivel_controladores_semestre_brl": lucro_controladores,
-        "origem_balanco": "CVM ITR 30/06 - Consolidado",
-        "origem_resultado": "CVM ITR DRE acumulada 01/01-30/06 - Consolidado",
+        "receita_semestre_brl": obter_conta(
+            dre, conta_config("receita", "3.01")
+        ),
+        "lucro_liquido_consolidado_semestre_brl": obter_conta(
+            dre, conta_config("lucro_consolidado", "3.11")
+        ),
+        "lucro_atribuivel_controladores_semestre_brl": obter_conta(
+            dre, conta_config("lucro_controladores", "3.11.01")
+        ),
+        "comparativo_reapresentado": reapresentado,
+        "ano_documento_fonte": ano_arquivo,
+        "ordem_exerc_fonte": ordem,
+        "origem_balanco": (
+            f"CVM ITR {ano_arquivo} - PENULTIMO de 30/06/{ano}"
+            if reapresentado
+            else f"CVM ITR {ano} 30/06 - ULTIMO"
+        ),
+        "origem_resultado": (
+            f"CVM ITR {ano_arquivo} DRE - PENULTIMO 01/01/{ano}-30/06/{ano}"
+            if reapresentado
+            else f"CVM ITR {ano} DRE acumulada 01/01-30/06 - ULTIMO"
+        ),
     }
 
 
-def extrair_anual_dfp(ano: int) -> dict:
-    data_ref = f"{ano}-12-31"
+def extrair_anual_dfp(
+    ano: int,
+    usar_comparativo_ano_seguinte: bool = False,
+) -> dict:
+    data_alvo = f"{ano}-12-31"
+
+    if usar_comparativo_ano_seguinte:
+        ano_arquivo = ano + 1
+        data_doc = f"{ano_arquivo}-12-31"
+        ordem = "PENULTIMO"
+        sufixo = f"REAPRESENTADO_EM_{ano_arquivo}"
+    else:
+        ano_arquivo = ano
+        data_doc = data_alvo
+        ordem = "ULTIMO"
+        sufixo = "ORIGINAL"
 
     bpa = filtrar_empresa_ultima_versao(
-        ler_csv_cvm("DFP", "BPA", ano), EMPRESA["cnpj"], data_ref
+        ler_csv_cvm("DFP", "BPA", ano_arquivo),
+        EMPRESA["cnpj"],
+        data_doc,
+        ordem_exerc=ordem,
+        data_fim_exercicio=data_alvo,
     )
     bpp = filtrar_empresa_ultima_versao(
-        ler_csv_cvm("DFP", "BPP", ano), EMPRESA["cnpj"], data_ref
+        ler_csv_cvm("DFP", "BPP", ano_arquivo),
+        EMPRESA["cnpj"],
+        data_doc,
+        ordem_exerc=ordem,
+        data_fim_exercicio=data_alvo,
     )
     dre = filtrar_empresa_ultima_versao(
-        ler_csv_cvm("DFP", "DRE", ano), EMPRESA["cnpj"], data_ref
+        ler_csv_cvm("DFP", "DRE", ano_arquivo),
+        EMPRESA["cnpj"],
+        data_doc,
+        ordem_exerc=ordem,
+        data_fim_exercicio=data_alvo,
     )
     dre = filtrar_dre_acumulada_ano(dre, ano)
 
-    salvar_filtrado(bpa, f"{ano}_ANUAL_DFP_BPA_con.csv")
-    salvar_filtrado(bpp, f"{ano}_ANUAL_DFP_BPP_con.csv")
-    salvar_filtrado(dre, f"{ano}_ANUAL_DFP_DRE_con.csv")
+    salvar_filtrado(bpa, f"{ano}_ANUAL_DFP_BPA_con_{sufixo}.csv")
+    salvar_filtrado(bpp, f"{ano}_ANUAL_DFP_BPP_con_{sufixo}.csv")
+    salvar_filtrado(dre, f"{ano}_ANUAL_DFP_DRE_con_{sufixo}.csv")
 
     ativo_total = obter_conta(bpa, conta_config("ativo_total", "1"))
-    pl_consolidado = obter_conta(bpp, conta_config("pl_consolidado", "2.03"))
-    nci = obter_conta(bpp, conta_config("nao_controladores", "2.03.09"))
+    pl_consolidado = obter_conta(
+        bpp, conta_config("pl_consolidado", "2.03")
+    )
+    nci = obter_conta(
+        bpp, conta_config("nao_controladores", "2.03.09")
+    )
 
     pl_controladores = (
         pl_consolidado - nci
@@ -506,15 +608,36 @@ def extrair_anual_dfp(ano: int) -> dict:
         else pl_consolidado
     )
 
+    reapresentado = bool(usar_comparativo_ano_seguinte)
+
     return {
-        "data_referencia": data_ref,
+        "data_referencia": data_alvo,
         "ativo_total_brl": ativo_total,
         "patrimonio_liquido_consolidado_brl": pl_consolidado,
         "participacao_nao_controladores_brl": nci,
         "patrimonio_atribuivel_controladores_brl": pl_controladores,
-        "receita_ano_brl": obter_conta(dre, conta_config("receita", "3.01")),
-        "lucro_liquido_consolidado_ano_brl": obter_conta(dre, conta_config("lucro_consolidado", "3.11")),
-        "lucro_atribuivel_controladores_ano_brl": obter_conta(dre, conta_config("lucro_controladores", "3.11.01")),
+        "receita_ano_brl": obter_conta(
+            dre, conta_config("receita", "3.01")
+        ),
+        "lucro_liquido_consolidado_ano_brl": obter_conta(
+            dre, conta_config("lucro_consolidado", "3.11")
+        ),
+        "lucro_atribuivel_controladores_ano_brl": obter_conta(
+            dre, conta_config("lucro_controladores", "3.11.01")
+        ),
+        "comparativo_reapresentado": reapresentado,
+        "ano_documento_fonte": ano_arquivo,
+        "ordem_exerc_fonte": ordem,
+        "origem_balanco": (
+            f"CVM DFP {ano_arquivo} - PENULTIMO de 31/12/{ano}"
+            if reapresentado
+            else f"CVM DFP {ano} 31/12 - ULTIMO"
+        ),
+        "origem_resultado": (
+            f"CVM DFP {ano_arquivo} DRE - PENULTIMO 01/01/{ano}-31/12/{ano}"
+            if reapresentado
+            else f"CVM DFP {ano} DRE anual - ULTIMO"
+        ),
     }
 
 
@@ -552,35 +675,100 @@ def montar_segundo_semestre(ano: int, primeiro: dict, anual: dict) -> dict:
             anual["lucro_atribuivel_controladores_ano_brl"],
             primeiro["lucro_atribuivel_controladores_semestre_brl"],
         ),
-        "origem_balanco": "CVM DFP 31/12 - Consolidado",
-        "origem_resultado":
-            "Derivado: DFP anual (01/01-31/12) - ITR acumulada (01/01-30/06)",
+        "comparativo_reapresentado": bool(
+            primeiro.get("comparativo_reapresentado", False)
+            or anual.get("comparativo_reapresentado", False)
+        ),
+        "ano_documento_fonte": anual.get("ano_documento_fonte"),
+        "ordem_exerc_fonte": anual.get("ordem_exerc_fonte"),
+        "origem_balanco": anual.get(
+            "origem_balanco",
+            "CVM DFP 31/12 - Consolidado",
+        ),
+        "origem_resultado": (
+            "Derivado: "
+            + str(anual.get("origem_resultado", "DFP anual"))
+            + " MENOS "
+            + str(primeiro.get("origem_resultado", "ITR 1S"))
+        ),
     }
 
 
 def coletar_financeiro_cvm() -> pd.DataFrame:
+    """
+    Para empresas com `usar_comparativos_reapresentados=true`:
+    tenta PENULTIMO do ano seguinte e, se não existir, volta para
+    ULTIMO do próprio ano.
+    """
     linhas = []
+    preferir_reapresentado = usar_comparativos_reapresentados()
 
     for ano in ANOS_COLETA:
-        print(f"\n=== CVM {ano} ===")
+        print(f"\n=== CVM período-alvo {ano} ===")
 
-        try:
-            primeiro = extrair_primeiro_semestre(ano)
+        primeiro = None
+        anual = None
+
+        if preferir_reapresentado:
+            try:
+                print(
+                    f"Tentando 1S/{ano} no comparativo ITR {ano + 1}..."
+                )
+                primeiro = extrair_primeiro_semestre(
+                    ano,
+                    usar_comparativo_ano_seguinte=True,
+                )
+                print(f"1S/{ano}: comparativo reapresentado utilizado.")
+            except Exception as exc:
+                print(
+                    f"[INFO] 1S/{ano} sem comparativo reapresentado: {exc}"
+                )
+
+        if primeiro is None:
+            try:
+                primeiro = extrair_primeiro_semestre(
+                    ano,
+                    usar_comparativo_ano_seguinte=False,
+                )
+                print(f"1S/{ano}: valor original utilizado.")
+            except Exception as exc:
+                print(f"[AVISO] Falha no 1S/{ano}: {exc}")
+
+        if preferir_reapresentado:
+            try:
+                print(
+                    f"Tentando anual/{ano} no comparativo DFP {ano + 1}..."
+                )
+                anual = extrair_anual_dfp(
+                    ano,
+                    usar_comparativo_ano_seguinte=True,
+                )
+                print(f"Anual/{ano}: comparativo reapresentado utilizado.")
+            except Exception as exc:
+                print(
+                    f"[INFO] Anual/{ano} sem comparativo reapresentado: {exc}"
+                )
+
+        if anual is None:
+            try:
+                anual = extrair_anual_dfp(
+                    ano,
+                    usar_comparativo_ano_seguinte=False,
+                )
+                print(f"Anual/{ano}: valor original utilizado.")
+            except Exception as exc:
+                print(f"[AVISO] Falha DFP anual/{ano}: {exc}")
+
+        if primeiro is not None:
             linhas.append(primeiro)
-        except Exception as exc:
-            print(f"[AVISO] Falha no 1S/{ano}: {exc}")
-            primeiro = None
-
-        try:
-            anual = extrair_anual_dfp(ano)
-        except Exception as exc:
-            print(f"[AVISO] Falha DFP anual/{ano}: {exc}")
-            anual = None
 
         if primeiro is not None and anual is not None:
-            linhas.append(montar_segundo_semestre(ano, primeiro, anual))
+            linhas.append(
+                montar_segundo_semestre(ano, primeiro, anual)
+            )
 
     df = pd.DataFrame(linhas)
+
     if not df.empty:
         df["data_referencia"] = pd.to_datetime(df["data_referencia"])
         df = df.sort_values("data_referencia").reset_index(drop=True)
@@ -675,6 +863,220 @@ def carregar_dividendos_ri_oficial() -> pd.DataFrame:
         df["fonte"] = df["fonte"].fillna(RI_DIVIDENDOS_URL)
 
     return df.sort_values("data").reset_index(drop=True)
+
+
+# ============================================================
+# AJUSTES HISTÓRICOS / RECLASSIFICAÇÕES
+# ============================================================
+
+def aplicar_ajustes_historicos(financeiro: pd.DataFrame) -> pd.DataFrame:
+    """
+    Aplica correções pontuais documentadas em `ajustes_historicos.csv`.
+
+    O objetivo é tratar situações em que uma companhia reapresenta/reclassifica
+    comparativos históricos, mas o layout padronizado da CVM não permite
+    recuperar automaticamente todos os campos com a mesma regra.
+
+    Regras:
+    1) O ajuste só altera os campos explicitamente informados no CSV.
+    2) Antes de aplicar os ajustes de 1S, preserva-se o total anual implícito:
+         total anual = 1S original + 2S original
+    3) Se um campo de fluxo do 1S for ajustado, o 2S do mesmo ano é recalculado:
+         2S corrigido = total anual preservado - 1S corrigido
+    4) Campos de posição patrimonial (Ativo/PL) não são recalculados por essa
+       rotina; permanecem conforme as demonstrações de posição utilizadas.
+    """
+    df = financeiro.copy()
+
+    # Colunas de auditoria.
+    if "ajuste_historico_aplicado" not in df.columns:
+        df["ajuste_historico_aplicado"] = False
+    if "campos_ajustados" not in df.columns:
+        df["campos_ajustados"] = ""
+    if "fonte_ajuste_historico" not in df.columns:
+        df["fonte_ajuste_historico"] = ""
+    if "motivo_ajuste_historico" not in df.columns:
+        df["motivo_ajuste_historico"] = ""
+
+    if not ARQUIVO_AJUSTES_HISTORICOS.exists():
+        return df
+
+    ajustes = pd.read_csv(
+        ARQUIVO_AJUSTES_HISTORICOS,
+        encoding="utf-8-sig",
+        dtype={"empresa_chave": str, "semestre": str, "campo": str},
+    )
+
+    obrigatorias = {
+        "empresa_chave",
+        "data_referencia",
+        "semestre",
+        "campo",
+        "valor_brl",
+        "fonte",
+        "motivo",
+    }
+    faltantes = obrigatorias.difference(ajustes.columns)
+    if faltantes:
+        raise ValueError(
+            "ajustes_historicos.csv sem colunas obrigatórias: "
+            + ", ".join(sorted(faltantes))
+        )
+
+    ajustes = ajustes[
+        ajustes["empresa_chave"].str.lower() == EMPRESA_CHAVE.lower()
+    ].copy()
+
+    if ajustes.empty:
+        return df
+
+    df["data_referencia"] = pd.to_datetime(
+        df["data_referencia"], errors="coerce"
+    )
+    ajustes["data_referencia"] = pd.to_datetime(
+        ajustes["data_referencia"], errors="coerce"
+    )
+    ajustes["valor_brl"] = pd.to_numeric(
+        ajustes["valor_brl"], errors="coerce"
+    )
+
+    # Preserva os totais anuais implícitos ANTES de mexer no 1S.
+    campos_fluxo = [
+        "receita_semestre_brl",
+        "lucro_liquido_consolidado_semestre_brl",
+        "lucro_atribuivel_controladores_semestre_brl",
+    ]
+
+    totais_anuais = {}
+
+    for ano in sorted(df["ano"].dropna().astype(int).unique()):
+        linha_1s = df[
+            (df["ano"].astype(int) == ano)
+            & (df["semestre"].astype(str) == "1S")
+        ]
+        linha_2s = df[
+            (df["ano"].astype(int) == ano)
+            & (df["semestre"].astype(str) == "2S")
+        ]
+
+        if linha_1s.empty or linha_2s.empty:
+            continue
+
+        totais_anuais[ano] = {}
+
+        for campo in campos_fluxo:
+            v1 = pd.to_numeric(
+                linha_1s.iloc[0].get(campo), errors="coerce"
+            )
+            v2 = pd.to_numeric(
+                linha_2s.iloc[0].get(campo), errors="coerce"
+            )
+
+            if pd.notna(v1) and pd.notna(v2):
+                totais_anuais[ano][campo] = float(v1) + float(v2)
+            else:
+                totais_anuais[ano][campo] = np.nan
+
+    anos_campos_1s_ajustados = {}
+
+    for _, ajuste in ajustes.iterrows():
+        data_ref = pd.Timestamp(ajuste["data_referencia"])
+        semestre = str(ajuste["semestre"])
+        campo = str(ajuste["campo"]).strip()
+        valor = ajuste["valor_brl"]
+
+        if campo not in df.columns:
+            raise ValueError(
+                f"Ajuste histórico solicita campo inexistente: {campo}"
+            )
+
+        mask = (
+            (df["data_referencia"] == data_ref)
+            & (df["semestre"].astype(str) == semestre)
+        )
+
+        if mask.sum() != 1:
+            raise ValueError(
+                f"Esperava 1 linha para ajuste {EMPRESA_CHAVE} "
+                f"{data_ref.date()} {semestre}, mas encontrei {mask.sum()}."
+            )
+
+        df.loc[mask, campo] = valor
+        df.loc[mask, "ajuste_historico_aplicado"] = True
+
+        campos_atuais = str(
+            df.loc[mask, "campos_ajustados"].iloc[0] or ""
+        ).strip()
+        lista_campos = [
+            x for x in campos_atuais.split(";") if x
+        ]
+        if campo not in lista_campos:
+            lista_campos.append(campo)
+        df.loc[mask, "campos_ajustados"] = ";".join(lista_campos)
+
+        df.loc[mask, "fonte_ajuste_historico"] = str(
+            ajuste.get("fonte", "")
+        )
+        df.loc[mask, "motivo_ajuste_historico"] = str(
+            ajuste.get("motivo", "")
+        )
+
+        ano = int(data_ref.year)
+
+        if semestre == "1S" and campo in campos_fluxo:
+            anos_campos_1s_ajustados.setdefault(ano, set()).add(campo)
+
+    # Recalcula o 2S para manter o total anual reapresentado já preservado.
+    for ano, campos in anos_campos_1s_ajustados.items():
+        mask_1s = (
+            (df["ano"].astype(int) == ano)
+            & (df["semestre"].astype(str) == "1S")
+        )
+        mask_2s = (
+            (df["ano"].astype(int) == ano)
+            & (df["semestre"].astype(str) == "2S")
+        )
+
+        if mask_1s.sum() != 1 or mask_2s.sum() != 1:
+            continue
+
+        for campo in campos:
+            total_anual = totais_anuais.get(ano, {}).get(campo, np.nan)
+            novo_1s = pd.to_numeric(
+                df.loc[mask_1s, campo].iloc[0],
+                errors="coerce",
+            )
+
+            if pd.notna(total_anual) and pd.notna(novo_1s):
+                novo_2s = float(total_anual) - float(novo_1s)
+                df.loc[mask_2s, campo] = novo_2s
+
+                df.loc[mask_2s, "ajuste_historico_aplicado"] = True
+
+                campos_atuais = str(
+                    df.loc[mask_2s, "campos_ajustados"].iloc[0] or ""
+                ).strip()
+                lista_campos = [
+                    x for x in campos_atuais.split(";") if x
+                ]
+                nome_derivado = campo + "_recalculado_2S"
+                if nome_derivado not in lista_campos:
+                    lista_campos.append(nome_derivado)
+
+                df.loc[mask_2s, "campos_ajustados"] = ";".join(lista_campos)
+                df.loc[
+                    mask_2s,
+                    "fonte_ajuste_historico",
+                ] = "Derivado do ajuste histórico do 1S + total anual preservado"
+                df.loc[
+                    mask_2s,
+                    "motivo_ajuste_historico",
+                ] = (
+                    "2S recalculado para manter consistência com o "
+                    "comparativo/reclassificação do 1S."
+                )
+
+    return df
 
 
 # ============================================================
@@ -1031,10 +1433,18 @@ def salvar_saidas(
         & (pd.to_datetime(precos["data"]) <= fim)
     ].copy()
 
+    inicio_proventos = pd.Timestamp(f"{ANO_BOOTSTRAP}-01-01")
+
     dividendos_alvo = dividendos[
-        (pd.to_datetime(dividendos["data"]) >= inicio)
+        (pd.to_datetime(dividendos["data"]) >= inicio_proventos)
         & (pd.to_datetime(dividendos["data"]) <= fim)
     ].copy() if not dividendos.empty else dividendos.copy()
+
+    if not dividendos_alvo.empty:
+        dividendos_alvo["evento_bootstrap"] = (
+            pd.to_datetime(dividendos_alvo["data"]).dt.year
+            < min(ANOS_ALVO)
+        )
 
     for tabela in (precos_alvo, dividendos_alvo, shares):
         tabela["empresa_chave"] = EMPRESA_CHAVE
@@ -1092,6 +1502,9 @@ def salvar_metadata_execucao() -> None:
         "ano_bootstrap": ANO_BOOTSTRAP,
         "proventos_status": EMPRESA.get("proventos_status"),
         "ri_dividendos_url": EMPRESA.get("ri_dividendos_url"),
+        "usar_comparativos_reapresentados":
+            EMPRESA.get("usar_comparativos_reapresentados", False),
+        "arquivo_ajustes_historicos": str(ARQUIVO_AJUSTES_HISTORICOS),
         "contas_cvm": EMPRESA.get("contas", {}),
         "observacoes": EMPRESA.get("observacoes", []),
     }
@@ -1120,6 +1533,10 @@ def executar_empresa(chave: str) -> None:
         raise RuntimeError(
             f"Nenhum dado financeiro foi extraído para {EMPRESA_CHAVE}."
         )
+
+    # Aplica reclassificações históricas documentadas antes de calcular
+    # TTM, crescimento YoY e demais indicadores.
+    financeiro = aplicar_ajustes_historicos(financeiro)
 
     precos, shares, info = coletar_mercado()
     dividendos = carregar_dividendos_ri_oficial()
