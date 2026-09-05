@@ -117,6 +117,9 @@
       "lucro_controladores": "3.11.01"
     },
     "observacoes": [],
-    "usar_comparativos_reapresentados": false
+    "usar_comparativos_reapresentados": false,
+    "periodos_nao_comparaveis_yoy": {
+      "2023-06-30": "1S23 não é diretamente comparável com 1S22 devido à combinação de negócios Localiza/Locamerica (Unidas), efetiva em 01/07/2022."
+    }
   }
 }

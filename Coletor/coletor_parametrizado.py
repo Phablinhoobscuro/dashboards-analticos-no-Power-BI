@@ -1490,6 +1490,46 @@ def salvar_saidas(
         json.dump(info, f, ensure_ascii=False, indent=2, default=str)
 
 
+def adicionar_comparabilidade_yoy(indicadores: pd.DataFrame) -> pd.DataFrame:
+    """
+    Adiciona sinalização qualitativa para períodos em que o crescimento YoY
+    é matematicamente calculável, mas economicamente não é diretamente
+    comparável por mudança estrutural relevante na companhia.
+
+    A configuração fica em:
+      EMPRESA["periodos_nao_comparaveis_yoy"]
+
+    Formato:
+      {
+        "YYYY-MM-DD": "motivo"
+      }
+
+    O valor numérico do crescimento NÃO é apagado. O dashboard pode mostrar
+    o número acompanhado da sinalização de comparabilidade.
+    """
+    df = indicadores.copy()
+
+    df["comparabilidade_yoy"] = "COMPARAVEL"
+    df["motivo_comparabilidade_yoy"] = ""
+
+    mapa = EMPRESA.get("periodos_nao_comparaveis_yoy", {}) or {}
+
+    if not mapa:
+        return df
+
+    datas = pd.to_datetime(df["data_referencia"], errors="coerce")
+
+    for data_txt, motivo in mapa.items():
+        data_alvo = pd.Timestamp(data_txt)
+        mask = datas == data_alvo
+
+        if mask.any():
+            df.loc[mask, "comparabilidade_yoy"] = "NAO_COMPARAVEL"
+            df.loc[mask, "motivo_comparabilidade_yoy"] = str(motivo)
+
+    return df
+
+
 def salvar_metadata_execucao() -> None:
     metadata = {
         "empresa_chave": EMPRESA_CHAVE,
@@ -1505,6 +1545,8 @@ def salvar_metadata_execucao() -> None:
         "usar_comparativos_reapresentados":
             EMPRESA.get("usar_comparativos_reapresentados", False),
         "arquivo_ajustes_historicos": str(ARQUIVO_AJUSTES_HISTORICOS),
+        "periodos_nao_comparaveis_yoy":
+            EMPRESA.get("periodos_nao_comparaveis_yoy", {}),
         "contas_cvm": EMPRESA.get("contas", {}),
         "observacoes": EMPRESA.get("observacoes", []),
     }
@@ -1549,6 +1591,7 @@ def executar_empresa(chave: str) -> None:
     )
 
     indicadores = calcular_indicadores(financeiro_mercado)
+    indicadores = adicionar_comparabilidade_yoy(indicadores)
 
     salvar_saidas(
         financeiro_mercado,

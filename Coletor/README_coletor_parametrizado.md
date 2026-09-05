@@ -1,57 +1,47 @@
-# Coletor Parametrizado V3 — ajuste histórico TOTVS 1S24
+# Coletor Parametrizado V4 — Localiza corrigida
 
-Esta versão mantém as correções da V2 e adiciona uma camada genérica de
-`ajustes_historicos.csv`.
+Mantém todas as correções anteriores de Smart Fit e TOTVS e adiciona
+três ajustes para a Localiza (RENT3).
 
-## Por que ela existe?
+## 1. Bootstrap de JCP 2022
 
-A TOTVS reapresentou no ITR de 30/06/2025 o comparativo de 1S24 com valores
-reclassificados. O layout padronizado da CVM não oferece, para todas as
-demonstrações, o mesmo comparativo de data-base que usamos no modelo.
+Eventos adicionados:
 
-Por isso, o coletor:
-1. coleta normalmente a CVM;
-2. aplica somente os campos documentados em `ajustes_historicos.csv`;
-3. recalcula o 2S do mesmo ano para manter o total anual;
-4. depois calcula TTM, YoY e indicadores.
+- 23/09/2022 — R$ 0,354889/ação — pagamento 09/11/2022
+- 16/12/2022 — R$ 0,366169/ação — pagamento 13/02/2023
 
-## Ajustes TOTVS 1S24
+Esses eventos entram no Dividend Yield TTM de 30/06/2023.
 
-- Receita: R$ 2.497.689.000
-- Lucro Líquido Consolidado: R$ 250.076.000
-- Lucro atribuível aos controladores: R$ 241.521.000
+## 2. Lucro dos controladores — 1S24
 
-Fonte: ITR TOTVS de 30/06/2025, comparativo acumulado de 01/01/2024 a 30/06/2024.
+Foi criado um ajuste histórico para:
 
-## O que NÃO é alterado
+`lucro_atribuivel_controladores_semestre_brl = +164.345.000`
 
-Ativo e Patrimônio Líquido de 30/06/2024 continuam vindo da demonstração de
-posição utilizada originalmente, porque o ajuste documentado é referente à DRE.
+O coletor recalcula automaticamente o 2S24 para preservar o total anual.
 
-## Auditoria
+## 3. Comparabilidade YoY — 1S23
 
-O CSV financeiro inclui:
-- `ajuste_historico_aplicado`
-- `campos_ajustados`
-- `fonte_ajuste_historico`
-- `motivo_ajuste_historico`
+O crescimento numérico de 1S23 vs 1S22 é mantido, mas recebe:
 
-## Arquivos necessários
+- `comparabilidade_yoy = NAO_COMPARAVEL`
+- `motivo_comparabilidade_yoy = ...`
 
-O script procura estes nomes:
-- `empresas_dashboard.json`
-- `proventos_oficiais.csv`
-- `ajustes_historicos.csv`
+Isso ocorre porque a combinação de negócios Localiza/Locamerica (Unidas)
+tornou-se efetiva em 01/07/2022, alterando estruturalmente a base comparativa.
+
+## Valores esperados após a execução
+
+- DY 1S23: aproximadamente 2,11%
+- Lucro controladores 1S24: +R$ 164.345.000
+- Lucro controladores 2S24: aproximadamente R$ 1.649.282.000
+- P/L e ROE de 1S24/1S25 serão recalculados
+- 1S23 ficará marcado como `NAO_COMPARAVEL`
 
 ## Execução
 
-```bash
-python coletor_parametrizado.py --empresa totvs
-```
+Os arquivos do ZIP já estão com os nomes esperados pelo script.
 
-Depois valide principalmente:
-- 1S24 Receita = 2.497.689.000
-- 1S24 Lucro Consolidado = 250.076.000
-- 1S24 Lucro Controladores = 241.521.000
-- 2S24 recalculado automaticamente
-- Crescimento YoY 1S25 próximo de 18,11%
+```bash
+python coletor_parametrizado.py --empresa localiza
+```
