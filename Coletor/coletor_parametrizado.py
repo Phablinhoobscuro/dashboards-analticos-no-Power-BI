@@ -1490,6 +1490,53 @@ def salvar_saidas(
         json.dump(info, f, ensure_ascii=False, indent=2, default=str)
 
 
+def adicionar_interpretabilidade_pl(indicadores: pd.DataFrame) -> pd.DataFrame:
+    """
+    Classifica se o P/L é economicamente interpretável.
+
+    Regra:
+    - lucro_controladores_ttm > 0  -> INTERPRETAVEL
+    - lucro_controladores_ttm <= 0 -> NAO_INTERPRETAVEL
+    - lucro ausente                -> INDETERMINADO
+
+    O valor numérico de P/L NÃO é apagado, para preservar auditoria.
+    A sinalização serve para o dashboard evitar interpretações do tipo
+    "P/L negativo = ação barata".
+    """
+    df = indicadores.copy()
+
+    lucro = pd.to_numeric(
+        df.get("lucro_controladores_ttm_brl"),
+        errors="coerce",
+    )
+
+    df["pl_interpretabilidade"] = np.select(
+        [
+            lucro > 0,
+            lucro <= 0,
+        ],
+        [
+            "INTERPRETAVEL",
+            "NAO_INTERPRETAVEL",
+        ],
+        default="INDETERMINADO",
+    )
+
+    df["motivo_pl_interpretabilidade"] = np.select(
+        [
+            lucro > 0,
+            lucro <= 0,
+        ],
+        [
+            "Lucro TTM positivo.",
+            "Lucro TTM não positivo; P/L negativo ou indefinido não deve ser interpretado como ação barata.",
+        ],
+        default="Lucro TTM ausente ou inválido.",
+    )
+
+    return df
+
+
 def adicionar_comparabilidade_yoy(indicadores: pd.DataFrame) -> pd.DataFrame:
     """
     Adiciona sinalização qualitativa para períodos em que o crescimento YoY
@@ -1547,6 +1594,9 @@ def salvar_metadata_execucao() -> None:
         "arquivo_ajustes_historicos": str(ARQUIVO_AJUSTES_HISTORICOS),
         "periodos_nao_comparaveis_yoy":
             EMPRESA.get("periodos_nao_comparaveis_yoy", {}),
+        "regra_pl_interpretabilidade":
+            "INTERPRETAVEL se lucro_controladores_ttm_brl > 0; "
+            "NAO_INTERPRETAVEL se <= 0; INDETERMINADO se ausente.",
         "contas_cvm": EMPRESA.get("contas", {}),
         "observacoes": EMPRESA.get("observacoes", []),
     }
@@ -1591,6 +1641,7 @@ def executar_empresa(chave: str) -> None:
     )
 
     indicadores = calcular_indicadores(financeiro_mercado)
+    indicadores = adicionar_interpretabilidade_pl(indicadores)
     indicadores = adicionar_comparabilidade_yoy(indicadores)
 
     salvar_saidas(

@@ -84,7 +84,7 @@
     "setor": "Consumo Cíclico / Construção Civil / Incorporações",
     "ri_dividendos_url": "https://ri.mrv.com.br/mercados-de-capitais/dividendos-e-jcp/",
     "proventos_status": "completo",
-    "proventos_espera_eventos": false,
+    "proventos_espera_eventos": true,
     "contas": {
       "ativo_total": "1",
       "pl_consolidado": "2.03",
@@ -94,7 +94,8 @@
       "lucro_controladores": "3.11.01"
     },
     "observacoes": [
-      "O histórico oficial consultado não apresenta eventos posteriores a 2022; assim, 2023-2025 é tratado como zero provento na base configurada."
+      "O histórico oficial consultado não apresenta eventos posteriores a 2022; assim, 2023-2025 é tratado como zero provento na base configurada.",
+      "Incluído como bootstrap o dividendo de 21/09/2022 (R$ 0,1978084/ação), necessário para o DY TTM de 30/06/2023."
     ],
     "usar_comparativos_reapresentados": false
   },

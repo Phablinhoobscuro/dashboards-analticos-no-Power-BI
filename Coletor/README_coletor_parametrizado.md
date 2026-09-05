@@ -1,47 +1,53 @@
-# Coletor Parametrizado V4 — Localiza corrigida
+# Coletor Parametrizado V5 — MRV corrigida
 
-Mantém todas as correções anteriores de Smart Fit e TOTVS e adiciona
-três ajustes para a Localiza (RENT3).
+Mantém todas as correções anteriores de Smart Fit, TOTVS e Localiza.
 
-## 1. Bootstrap de JCP 2022
+## 1. Bootstrap de dividendos MRV 2022
 
-Eventos adicionados:
+Foi incluído o evento de 21/09/2022:
 
-- 23/09/2022 — R$ 0,354889/ação — pagamento 09/11/2022
-- 16/12/2022 — R$ 0,366169/ação — pagamento 13/02/2023
+- Tipo: Dividendo
+- Valor: R$ 0,1978084 por ação
+- Pagamento: 04/10/2022
+- Fonte: RI oficial da MRV
 
-Esses eventos entram no Dividend Yield TTM de 30/06/2023.
+Esse valor é usado apenas porque entra na janela TTM do Dividend Yield
+em 30/06/2023.
 
-## 2. Lucro dos controladores — 1S24
+## 2. Interpretabilidade do P/L
 
-Foi criado um ajuste histórico para:
+O arquivo de indicadores agora recebe duas colunas:
 
-`lucro_atribuivel_controladores_semestre_brl = +164.345.000`
+- `pl_interpretabilidade`
+- `motivo_pl_interpretabilidade`
 
-O coletor recalcula automaticamente o 2S24 para preservar o total anual.
+Regra:
 
-## 3. Comparabilidade YoY — 1S23
+- lucro TTM > 0  -> `INTERPRETAVEL`
+- lucro TTM <= 0 -> `NAO_INTERPRETAVEL`
+- lucro ausente  -> `INDETERMINADO`
 
-O crescimento numérico de 1S23 vs 1S22 é mantido, mas recebe:
+O valor numérico do P/L continua salvo para auditoria.
 
-- `comparabilidade_yoy = NAO_COMPARAVEL`
-- `motivo_comparabilidade_yoy = ...`
+## Valores esperados para a MRV
 
-Isso ocorre porque a combinação de negócios Localiza/Locamerica (Unidas)
-tornou-se efetiva em 01/07/2022, alterando estruturalmente a base comparativa.
+Depois da execução:
 
-## Valores esperados após a execução
-
-- DY 1S23: aproximadamente 2,11%
-- Lucro controladores 1S24: +R$ 164.345.000
-- Lucro controladores 2S24: aproximadamente R$ 1.649.282.000
-- P/L e ROE de 1S24/1S25 serão recalculados
-- 1S23 ficará marcado como `NAO_COMPARAVEL`
+- DY 1S23 deve ficar próximo de 1,71%
+- DY dos demais períodos deve permanecer 0%
+- P/L continua numericamente negativo quando houver prejuízo TTM
+- `pl_interpretabilidade` deve ficar `NAO_INTERPRETAVEL` nos períodos
+  em que o lucro TTM for não positivo
 
 ## Execução
 
 Os arquivos do ZIP já estão com os nomes esperados pelo script.
 
 ```bash
-python coletor_parametrizado.py --empresa localiza
+python coletor_parametrizado.py --empresa mrv
 ```
+
+Depois valide principalmente:
+- `dividendos_por_acao_12m_brl` em 30/06/2023
+- `dividend_yield_12m_pct`
+- `pl_interpretabilidade`
