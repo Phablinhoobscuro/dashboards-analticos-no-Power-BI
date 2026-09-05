@@ -1,0 +1,27 @@
+{
+  "empresa_chave": "smartfit",
+  "empresa": "SMARTFIT ESCOLA DE GINÁSTICA E DANÇA S.A.",
+  "cnpj": "07.594.978/0001-78",
+  "ticker_b3": "SMFT3",
+  "ticker_yahoo": "SMFT3.SA",
+  "setor": "Consumo Cíclico / Academias",
+  "anos_alvo": [
+    2023,
+    2024,
+    2025
+  ],
+  "ano_bootstrap": 2022,
+  "proventos_status": "completo",
+  "ri_dividendos_url": "https://investor.smartfit.com.br/dividendos-jcp/",
+  "contas_cvm": {
+    "ativo_total": "1",
+    "pl_consolidado": "2.03",
+    "nao_controladores": "2.03.09",
+    "receita": "3.01",
+    "lucro_consolidado": "3.11",
+    "lucro_controladores": "3.11.01"
+  },
+  "observacoes": [
+    "Empresa-piloto validada antes da parametrização."
+  ]
+}

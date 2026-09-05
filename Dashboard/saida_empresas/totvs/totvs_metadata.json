@@ -1,0 +1,27 @@
+{
+  "empresa_chave": "totvs",
+  "empresa": "TOTVS S.A.",
+  "cnpj": "53.113.791/0001-22",
+  "ticker_b3": "TOTS3",
+  "ticker_yahoo": "TOTS3.SA",
+  "setor": "Tecnologia da Informação / Software",
+  "anos_alvo": [
+    2023,
+    2024,
+    2025
+  ],
+  "ano_bootstrap": 2022,
+  "proventos_status": "completo",
+  "ri_dividendos_url": "https://ri.totvs.com/informacoes-financeiras/dividendos-e-jcp/",
+  "contas_cvm": {
+    "ativo_total": "1",
+    "pl_consolidado": "2.03",
+    "nao_controladores": "2.03.09",
+    "receita": "3.01",
+    "lucro_consolidado": "3.11",
+    "lucro_controladores": "3.11.01"
+  },
+  "observacoes": [
+    "Primeira empresa recomendada para testar após a regressão da Smart Fit."
+  ]
+}
