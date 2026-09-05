@@ -54,8 +54,8 @@
     "prefixo_arquivo": "porto",
     "setor": "Financeiro / Previdência e Seguros / Seguradoras",
     "ri_dividendos_url": "https://ri.portoseguro.com.br/governanca-corporativa/dividendos-e-jcp/",
-    "proventos_status": "agregado_anual",
-    "proventos_espera_eventos": false,
+    "proventos_status": "completo",
+    "proventos_espera_eventos": true,
     "proventos_anuais_oficiais_por_acao": {
       "2023": 1.5,
       "2024": 2.04,
@@ -71,9 +71,13 @@
     },
     "observacoes": [
       "O RI consultado traz proventos anuais agregados, insuficientes para DY semestral TTM.",
-      "Por ser seguradora, validar cuidadosamente Receita, Margem, ROA e contas CVM antes de congelar a metodologia."
+      "Por ser seguradora, validar cuidadosamente Receita, Margem, ROA e contas CVM antes de congelar a metodologia.",
+      "Histórico detalhado de JCP/dividendos 2022-2025 incorporado a partir de avisos oficiais aos acionistas.",
+      "Dividendos adicionais referentes a um exercício entram no TTM somente na data em que foram formalmente aprovados/declarados.",
+      "O dividendo adicional referente a 2025, aprovado apenas em 31/03/2026, não compõe o DY em 31/12/2025."
     ],
-    "usar_comparativos_reapresentados": false
+    "usar_comparativos_reapresentados": false,
+    "metodologia_dividend_yield": "TTM por data de declaração/aprovação do provento, não por data de pagamento."
   },
   "mrv": {
     "nome": "MRV ENGENHARIA E PARTICIPACOES S.A.",

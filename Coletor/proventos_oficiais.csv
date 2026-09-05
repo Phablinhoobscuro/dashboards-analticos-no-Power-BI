@@ -14,6 +14,22 @@ localiza,JCP,24/06/2025,2025-06-24,2025-08-19,2025,533817799.07,0.506193,https:/
 localiza,JCP,22/09/2025,2025-09-22,2025-11-18,2025,543441607.99,0.515365,https://ri.localiza.com/mercado-de-capitais/dividendos-e-jcp/
 localiza,JCP,12/12/2025,2025-12-12,2026-02-06,2025,543563717.94,0.515478,https://ri.localiza.com/mercado-de-capitais/dividendos-e-jcp/
 mrv,DIVIDENDO,21/09/2022,2022-09-21,2022-10-04,2022,,0.1978084,https://ri.mrv.com.br/mercados-de-capitais/dividendos-e-jcp/
+porto,JCP,RCA 24/08/2022 — ref. jan-jun/2022,2022-08-24,2023-04-11,2022,397575000.0,0.62330389068,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/4deb1bc5-74f9-7f6f-99f5-a3acd6071891?origin=1
+porto,JCP,RCA 26/10/2022 — ref. jul-dez/2022,2022-10-26,2023-11-29,2022,56000000.0,0.08777106007,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/4deb1bc5-74f9-7f6f-99f5-a3acd6071891?origin=1
+porto,JCP,RCA 26/06/2023 — ref. 1S23,2023-06-26,,2023,377865000.0,0.58940881104,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/3ada0e5c-8000-0a0c-803a-056115098836?origin=1
+porto,JCP,RCA 25/09/2023 — ref. 3T23,2023-09-25,,2023,187000000.0,0.29169001539,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/3ada0e5c-8000-0a0c-803a-056115098836?origin=1
+porto,JCP,RCA 21/12/2023 — ref. 4T23,2023-12-21,,2023,339920000.0,0.53022069535,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/3ada0e5c-8000-0a0c-803a-056115098836?origin=1
+porto,JCP,RCA 25/03/2024 — ref. 1T24,2024-03-25,2025-04-10,2024,192115000.0,0.29935563114,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/c51162ba-772b-3276-e991-5239fc18f0bc?origin=1
+porto,DIVIDENDO,AGOE 28/03/2024 — adicional ref. 2023,2024-03-28,,2023,60067875.5,0.09380122264,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/3ada0e5c-8000-0a0c-803a-056115098836?origin=1
+porto,JCP,RCA 25/06/2024 — ref. 2T24,2024-06-25,2025-04-10,2024,204820000.0,0.31918046848,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/c51162ba-772b-3276-e991-5239fc18f0bc?origin=1
+porto,JCP,RCA 24/09/2024 — ref. 3T24,2024-09-24,2025-04-10,2024,263000000.0,0.4098231569,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/c51162ba-772b-3276-e991-5239fc18f0bc?origin=1
+porto,JCP,RCA 24/12/2024 — ref. 4T24,2024-12-24,2025-11-28,2024,269670120.0,0.42105133122,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/da5a8cba-c0a0-3baf-39e4-4db496dbb574?origin=1
+porto,JCP,RCA 25/03/2025 — ref. 1T25,2025-03-25,2026-04-30,2025,277810000.0,0.4327368133,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/5fc07a56-476a-56fa-1f90-8b87c4a74dfe?origin=2
+porto,DIVIDENDO,AGOE 28/03/2025 — adicional 2024 (1ª parte),2025-03-28,2025-04-10,2024,81475000.0,0.12691131299,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/c51162ba-772b-3276-e991-5239fc18f0bc?origin=1
+porto,DIVIDENDO,AGOE 28/03/2025 — adicional 2024 (2ª parte),2025-03-28,2025-11-28,2024,307442132.44,0.4788939515,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/da5a8cba-c0a0-3baf-39e4-4db496dbb574?origin=1
+porto,JCP,RCA 23/06/2025 — ref. 2T25,2025-06-23,2026-04-30,2025,311011000.0,0.4832081062,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/5fc07a56-476a-56fa-1f90-8b87c4a74dfe?origin=2
+porto,JCP,RCA 22/09/2025 — ref. 3T25,2025-09-22,2026-04-30,2025,342850000.0,0.53380435871,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/5fc07a56-476a-56fa-1f90-8b87c4a74dfe?origin=2
+porto,JCP,RCA 19/12/2025 — ref. 4T25 (VPA retificado em 26/12),2025-12-19,2026-04-30,2025,344260000.0,0.53760384028,https://api.mziq.com/mzfilemanager/v2/d/b77a3922-d280-4451-b3ee-0afec4577834/5fc07a56-476a-56fa-1f90-8b87c4a74dfe?origin=2
 smartfit,JCP,Out/2023,2023-10-31,2023-10-27,2023,206600000.0,0.3524153209,https://investor.smartfit.com.br/dividendos-jcp/
 smartfit,JCP,Dez/2023,2023-12-31,2023-12-21,2023,59400000.0,0.1013232943,https://investor.smartfit.com.br/dividendos-jcp/
 smartfit,JCP,Jun/2024,2024-06-30,2024-07-31,2024,50000000.0,0.0852889683,https://investor.smartfit.com.br/dividendos-jcp/
