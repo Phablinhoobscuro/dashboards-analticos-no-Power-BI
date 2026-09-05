@@ -1138,7 +1138,17 @@ def coletar_mercado():
                 shares_df["data"] = shares_df["data"].dt.tz_localize(None)
             except TypeError:
                 pass
-            shares_df = shares_df.sort_values("data")
+            # O yfinance pode devolver mais de uma observação para a
+            # mesma companhia/data, inclusive com valores distintos.
+            # Para garantir chave única (empresa + data) no banco e tornar
+            # a seleção do último valor determinística, preservamos a ordem
+            # original em empates e mantemos a última observação da data.
+            shares_df = (
+                shares_df
+                .sort_values("data", kind="stable")
+                .drop_duplicates(subset=["data"], keep="last")
+                .reset_index(drop=True)
+            )
     except Exception as exc:
         print(f"[AVISO] Não consegui histórico de ações: {exc}")
         shares_df = pd.DataFrame(
@@ -1597,6 +1607,9 @@ def salvar_metadata_execucao() -> None:
         "regra_pl_interpretabilidade":
             "INTERPRETAVEL se lucro_controladores_ttm_brl > 0; "
             "NAO_INTERPRETAVEL se <= 0; INDETERMINADO se ausente.",
+        "regra_historico_acoes":
+            "Em duplicidades de data retornadas pelo yfinance, a última "
+            "observação recebida para a data é preservada de forma determinística.",
         "contas_cvm": EMPRESA.get("contas", {}),
         "observacoes": EMPRESA.get("observacoes", []),
     }
